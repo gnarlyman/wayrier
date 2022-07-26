@@ -107,7 +107,7 @@ async def mouse_client(r):
 
 
 async def start():
-    reader, writer = await asyncio.open_connection('192.168.0.105', sys.argv[1])
+    reader, writer = await asyncio.open_connection(sys.argv[1], sys.argv[2])
     line = await reader.readline()
     device_type = line.decode().strip()
     print(device_type)
