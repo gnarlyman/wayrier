@@ -100,10 +100,10 @@ async def mouse_client(r):
                 mouse.press(Button.right)
             elif code == 273 and value == 0:
                 mouse.release(Button.right)
-            elif code == 11 and value >= 0:
-                mouse.scroll(1, value)
-            elif code == 11 and value < 0:
-                mouse.scroll(0, value)
+            elif code == 8 and value == 1:
+                mouse.scroll(0, 1)
+            elif code == 8 and value == -1:
+                mouse.scroll(0, -1)
 
 
 async def start():
