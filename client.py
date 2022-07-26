@@ -61,6 +61,11 @@ async def keyboard_client(r):
         "KEY_MINUS": '-',
         "KEY_EQUAL": '=',
         "KEY_GRAVE": '`',
+        "KEY_SEMICOLON": ';',
+        "KEY_SLASH": '/',
+        "KEY_BACKSLASH": '\\',
+        "KEY_LEFTBRACE": '[',
+        "KEY_RIGHTBRACE": ']',
     }
 
     keyboard = kC()
@@ -101,9 +106,9 @@ async def mouse_client(r):
             elif code == 273 and value == 0:
                 mouse.release(Button.right)
             elif code == 8 and value == 1:
-                mouse.scroll(0, 1)
+                mouse.scroll(0, 10)
             elif code == 8 and value == -1:
-                mouse.scroll(0, -1)
+                mouse.scroll(0, -10)
 
 
 async def start():
