@@ -72,9 +72,7 @@ mouse = mC()
 
 
 async def keyboard_client(code, ev_type, value):
-    print('keyboard', code, ev_type, value)
     key = ecodes.KEY[code]
-    print(key)
     if key not in keymap:
         return
 
