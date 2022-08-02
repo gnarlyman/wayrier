@@ -1,6 +1,5 @@
 import evdev
 import asyncio
-from selectors import DefaultSelector, EVENT_READ
 
 
 class Grabbed:
