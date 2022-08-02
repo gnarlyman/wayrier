@@ -109,14 +109,13 @@ async def mouse_client(code, ev_type, value):
 
 async def start():
     host, port = sys.argv[1], sys.argv[2]
-    print(f"connecting to {host}:{port}")
     while True:
         try:
             reader, writer = await asyncio.open_connection(host, port)
+            print(f"connected to {host}:{port}")
             while True:
                 data = await reader.readline()
                 device_type, code, ev_type, value = map(int, data.decode().split())
-                print(device_type, code, ev_type, value)
                 if device_type == 0:
                     await keyboard_client(code, ev_type, value)
                 elif device_type == 1:
