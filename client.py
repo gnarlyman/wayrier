@@ -113,6 +113,9 @@ async def start():
             print(f"connected to {host}:{port}")
             while True:
                 data = await reader.readline()
+                if not data.strip():
+                    break
+
                 device_type, code, ev_type, value = map(int, data.decode().split())
                 if device_type == 0:
                     await keyboard_client(code, ev_type, value)
