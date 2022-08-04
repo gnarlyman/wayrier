@@ -3,6 +3,7 @@ from pynput.keyboard import Key, Controller as kC
 import sys
 import asyncio
 import ecodes
+from screeninfo import get_monitors
 
 keymap = {
     "KEY_0": '0',
@@ -69,11 +70,13 @@ keymap = {
 
 keyboard = kC()
 mouse = mC()
+mon = [i for i in get_monitors() if i.is_primary][0]
 
 
 class Control:
     def __init__(self):
         self.x, self.y = 0, 0
+        print(mon.x, mon.y)
 
     async def keyboard_client(self, code, ev_type, value):
         key = ecodes.KEY[code]
@@ -87,14 +90,29 @@ class Control:
 
     async def mouse_client(self, code, ev_type, value):
         m = ecodes.bytype[ev_type][code]
-        print(mouse.position)
+        cx, cy = mouse.position
         if m == 'SYN_REPORT':
+            print("REL Movement:", self.x, self.y)
             mouse.move(self.x, self.y)
             self.x, self.y = 0, 0
         elif m == 'REL_X':
-            self.x += value
+            tmp_x = cx
+            tmp_x += value
+            if tmp_x < 0:
+                self.x += value + (tmp_x * -1)
+            elif tmp_x > mon.width:
+                self.x += value - (tmp_x - mon.width + 1)
+            else:
+                self.x += value
         elif m == 'REL_Y':
-            self.y += value
+            tmp_y = cy
+            tmp_y += value
+            if tmp_y < 0:
+                self.y += value + (tmp_y * -1)
+            elif tmp_y > mon.height:
+                self.y += value - (tmp_y - mon.height + 1)
+            else:
+                self.y += value
         elif 'BTN_LEFT' in m and value == 1:
             mouse.press(Button.left)
         elif 'BTN_LEFT' in m and value == 0:
@@ -137,9 +155,6 @@ async def start():
                     await c.mouse_client(code, ev_type, value)
                 else:
                     print('unknown device or bad line')
-
-            writer.close()
-            await writer.wait_closed()
 
         except KeyboardInterrupt:
             break
