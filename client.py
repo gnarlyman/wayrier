@@ -66,6 +66,12 @@ keymap = {
     "KEY_RIGHTBRACE": ']',
     "KEY_COMMA": ',',
     "KEY_DOT": '.',
+    "KEY_APOSTROPHE": '\'',
+    "KEY_END": Key.end,
+    "KEY_INSERT": Key.insert,
+    "KEY_HOME": Key.home,
+    "KEY_PAGEUP": Key.page_up,
+    "KEY_PAGEDOWN": Key.page_down,
 }
 
 keyboard = kC()
@@ -80,7 +86,10 @@ class Control:
 
     async def keyboard_client(self, code, ev_type, value):
         key = ecodes.KEY[code]
+        if key == 'KEY_RESERVED':
+            return
         if key not in keymap:
+            print(key)
             return
 
         elif value == 1 or value == 2:
@@ -160,8 +169,9 @@ async def start():
         except Exception as e:
             print("Error", e)
         finally:
-            writer.close()
-            await writer.wait_closed()
+            if writer:
+                writer.close()
+                await writer.wait_closed()
 
         await asyncio.sleep(1)
 
