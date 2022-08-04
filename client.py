@@ -87,6 +87,7 @@ class Control:
 
     async def mouse_client(self, code, ev_type, value):
         m = ecodes.bytype[ev_type][code]
+        print(mouse.position)
         if m == 'SYN_REPORT':
             mouse.move(self.x, self.y)
             self.x, self.y = 0, 0
