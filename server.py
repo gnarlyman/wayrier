@@ -1,5 +1,6 @@
 import evdev
 import asyncio
+import sys
 
 
 class Grabbed:
@@ -44,6 +45,10 @@ class InputHandler:
     async def server_callback(self, reader, writer):
         print("client connected")
         while True:
+            if reader.at_eof():
+                print("client disconnected")
+                break
+
             dev_type, code, ev_type, value = await self.queue.get()
             if self.grabbed:
                 writer.write(f"{dev_type} {code} {ev_type} {value}\n".encode())
@@ -65,7 +70,7 @@ async def main():
         else:
             asyncio.ensure_future(inpt.read_device(d, 1))
 
-    server = await asyncio.start_server(inpt.server_callback, '0.0.0.0', 5842)
+    server = await asyncio.start_server(inpt.server_callback, '0.0.0.0', sys.argv[1])
 
     async with server:
         await server.serve_forever()

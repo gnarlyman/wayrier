@@ -71,63 +71,82 @@ keyboard = kC()
 mouse = mC()
 
 
-async def keyboard_client(code, ev_type, value):
-    key = ecodes.KEY[code]
-    if key not in keymap:
-        return
+class Control:
+    def __init__(self):
+        self.x, self.y = 0, 0
 
-    elif value == 1:
-        keyboard.press(keymap[key])
-    elif value == 0:
-        keyboard.release(keymap[key])
+    async def keyboard_client(self, code, ev_type, value):
+        key = ecodes.KEY[code]
+        if key not in keymap:
+            return
 
+        elif value == 1:
+            keyboard.press(keymap[key])
+        elif value == 0:
+            keyboard.release(keymap[key])
 
-async def mouse_client(code, ev_type, value):
-    if code == 0:
-        mouse.move(value, 0)
-    elif code == 1:
-        mouse.move(0, value)
-    elif code == 272 and value == 1:
-        mouse.press(Button.left)
-    elif code == 272 and value == 0:
-        mouse.release(Button.left)
-    elif code == 273 and value == 1:
-        mouse.press(Button.right)
-    elif code == 273 and value == 0:
-        mouse.release(Button.right)
-    elif code == 274 and value == 1:
-        mouse.press(Button.middle)
-    elif code == 274 and value == 0:
-        mouse.release(Button.middle)
-    elif code == 8 and value == 1:
-        mouse.scroll(0, 10)
-    elif code == 8 and value == -1:
-        mouse.scroll(0, -10)
+    async def mouse_client(self, code, ev_type, value):
+        m = ecodes.bytype[ev_type][code]
+        if m == 'SYN_REPORT':
+            mouse.move(self.x, self.y)
+            self.x, self.y = 0, 0
+        elif m == 'REL_X':
+            self.x += value
+        elif m == 'REL_Y':
+            self.y += value
+        elif 'BTN_LEFT' in m and value == 1:
+            mouse.press(Button.left)
+        elif 'BTN_LEFT' in m and value == 0:
+            mouse.release(Button.left)
+        elif 'BTN_RIGHT' in m and value == 1:
+            mouse.press(Button.right)
+        elif 'BTN_RIGHT' in m and value == 0:
+            mouse.release(Button.right)
+        elif 'BTN_MIDDLE' in m and value == 1:
+            mouse.press(Button.middle)
+        elif 'BTN_MIDDLE' in m and value == 0:
+            mouse.release(Button.middle)
+        elif 'REL_WHEEL' in m and value == 1:
+            mouse.scroll(0, 10)
+        elif 'REL_WHEEL' in m and value == -1:
+            mouse.scroll(0, -10)
 
 
 async def start():
+    c = Control()
+
     host, port = sys.argv[1], sys.argv[2]
+    reader, writer = None, None
     while True:
         try:
             reader, writer = await asyncio.open_connection(host, port)
             print(f"connected to {host}:{port}")
             while True:
+                if reader.at_eof():
+                    break
+
                 data = await reader.readline()
                 if not data.strip():
                     break
 
                 device_type, code, ev_type, value = map(int, data.decode().split())
                 if device_type == 0:
-                    await keyboard_client(code, ev_type, value)
+                    await c.keyboard_client(code, ev_type, value)
                 elif device_type == 1:
-                    await mouse_client(code, ev_type, value)
+                    await c.mouse_client(code, ev_type, value)
                 else:
                     print('unknown device or bad line')
+
+            writer.close()
+            await writer.wait_closed()
 
         except KeyboardInterrupt:
             break
         except Exception as e:
-            print(e)
+            print("Error", e)
+        finally:
+            writer.close()
+            await writer.wait_closed()
 
         await asyncio.sleep(1)
 
