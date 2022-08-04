@@ -92,7 +92,6 @@ class Control:
         m = ecodes.bytype[ev_type][code]
         cx, cy = mouse.position
         if m == 'SYN_REPORT':
-            print("REL Movement:", self.x, self.y)
             mouse.move(self.x, self.y)
             self.x, self.y = 0, 0
         elif m == 'REL_X':
