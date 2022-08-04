@@ -80,7 +80,7 @@ class Control:
         if key not in keymap:
             return
 
-        elif value == 1:
+        elif value == 1 or value == 2:
             keyboard.press(keymap[key])
         elif value == 0:
             keyboard.release(keymap[key])
