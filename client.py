@@ -4,6 +4,7 @@ import sys
 import asyncio
 import ecodes
 from screeninfo import get_monitors
+import pyclip
 
 keymap = {
     "KEY_F1": Key.f1,
@@ -199,13 +200,19 @@ async def start():
                 if not data.strip():
                     break
 
-                device_type, code, ev_type, value = map(int, data.decode().split())
-                if device_type == 0:
-                    await c.keyboard_client(code, ev_type, value)
-                elif device_type == 1:
-                    await c.mouse_client(code, ev_type, value)
+                d = data.decode()
+                if d.startswith('clipboard'):
+                    data = await reader.read(int(d.split(" ")[1]))
+                    print(f"received clipboard data: {len(data)} bytes")
+                    pyclip.copy(data)
                 else:
-                    print('unknown device or bad line')
+                    device_type, code, ev_type, value = map(int, d.split())
+                    if device_type == 0:
+                        await c.keyboard_client(code, ev_type, value)
+                    elif device_type == 1:
+                        await c.mouse_client(code, ev_type, value)
+                    else:
+                        print('unknown device or bad line')
 
         except KeyboardInterrupt:
             break

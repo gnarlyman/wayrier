@@ -1,3 +1,5 @@
 evdev
 pynput
 screeninfo
+pyclip
+
