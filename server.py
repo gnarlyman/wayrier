@@ -43,9 +43,9 @@ class InputHandler:
                             dev.ungrab()
                             self.grabbed.enabled = False
                     elif key == 'KEY_LEFTCTRL':
-                        self.key_ctrl = ev.value == 1
+                        self.key_ctrl = ev.value in (1, 2)
                     elif key == 'KEY_C':
-                        self.key_c = ev.value == 1
+                        self.key_c = ev.value in (1, 2)
 
                     if not self.grabbed and self.key_c and self.key_ctrl:
                         asyncio.create_task(self.queue_clipboard())
