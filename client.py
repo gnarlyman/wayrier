@@ -95,10 +95,10 @@ keymap = {
     "KEY_DOT_SHIFT": '>',
     "KEY_APOSTROPHE": '\'',
     "KEY_END": Key.end,
-    "KEY_INSERT": Key.insert,
-    "KEY_HOME": Key.home,
-    "KEY_PAGEUP": Key.page_up,
-    "KEY_PAGEDOWN": Key.page_down,
+    # "KEY_INSERT": Key.insert,
+    # "KEY_HOME": Key.home,
+    # "KEY_PAGEUP": Key.page_up,
+    # "KEY_PAGEDOWN": Key.page_down,
 }
 
 keyboard = kC()
