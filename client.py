@@ -178,6 +178,8 @@ class Control:
             mouse.scroll(0, 10)
         elif 'REL_WHEEL' in m and value == -1:
             mouse.scroll(0, -10)
+        elif 'BTN_SIDE' in m and value == 1:
+            mouse.click(Button.left, count=2)
 
 
 async def start():
