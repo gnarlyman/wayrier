@@ -6,16 +6,38 @@ import ecodes
 from screeninfo import get_monitors
 
 keymap = {
+    "KEY_F1": Key.f1,
+    "KEY_F2": Key.f2,
+    "KEY_F3": Key.f3,
+    "KEY_F4": Key.f4,
+    "KEY_F5": Key.f5,
+    "KEY_F6": Key.f6,
+    "KEY_F7": Key.f7,
+    "KEY_F8": Key.f8,
+    "KEY_F9": Key.f9,
+    "KEY_F10": Key.f10,
+    "KEY_F11": Key.f11,
+    "KEY_F12": Key.f12,
     "KEY_0": '0',
+    "KEY_0_SHIFT": ')',
     "KEY_1": '1',
+    "KEY_1_SHIFT": '!',
     "KEY_2": '2',
+    "KEY_2_SHIFT": '@',
     "KEY_3": '3',
+    "KEY_3_SHIFT": '#',
     "KEY_4": '4',
+    "KEY_4_SHIFT": '$',
     "KEY_5": '5',
+    "KEY_5_SHIFT": '%',
     "KEY_6": '6',
+    "KEY_6_SHIFT": '^',
     "KEY_7": '7',
+    "KEY_7_SHIFT": '&',
     "KEY_8": '8',
+    "KEY_8_SHIFT": '*',
     "KEY_9": '9',
+    "KEY_9_SHIFT": '(',
     "KEY_A": 'a',
     "KEY_B": 'b',
     "KEY_C": 'c',
@@ -43,6 +65,7 @@ keymap = {
     "KEY_Y": 'y',
     "KEY_Z": 'z',
     "KEY_LEFTSHIFT": Key.shift,
+    "KEY_RIGHTSHIFT": Key.shift_r,
     "KEY_LEFTCTRL": Key.ctrl,
     "KEY_LEFTMETA": Key.cmd,
     "KEY_SPACE": Key.space,
@@ -57,15 +80,19 @@ keymap = {
     "KEY_LEFT": Key.left,
     "KEY_RIGHT": Key.right,
     "KEY_MINUS": '-',
+    "KEY_MINUS_SHIFT": '_',
     "KEY_EQUAL": '=',
+    "KEY_EQUAL_SHIFT": '+',
     "KEY_GRAVE": '`',
     "KEY_SEMICOLON": ';',
     "KEY_SLASH": '/',
+    "KEY_SLASH_SHIFT": '?',
     "KEY_BACKSLASH": '\\',
     "KEY_LEFTBRACE": '[',
     "KEY_RIGHTBRACE": ']',
     "KEY_COMMA": ',',
     "KEY_DOT": '.',
+    "KEY_DOT_SHIFT": '>',
     "KEY_APOSTROPHE": '\'',
     "KEY_END": Key.end,
     "KEY_INSERT": Key.insert,
@@ -82,17 +109,31 @@ mon = [i for i in get_monitors() if i.is_primary][0]
 class Control:
     def __init__(self):
         self.x, self.y = 0, 0
-        print(mon.x, mon.y)
+        self.left_click_down = 0
+        self.left_click_up = 0
+        self.shift = False
 
     async def keyboard_client(self, code, ev_type, value):
         key = ecodes.KEY[code]
         if key == 'KEY_RESERVED':
             return
-        if key not in keymap:
-            print(key)
+        elif key == "KEY_LEFTSHIFT" or key == "KEY_RIGHTSHIFT":
+            if value == 1 or value == 2:
+                keyboard.press(keymap[key])
+                self.shift = True
+            elif value == 0:
+                keyboard.release(keymap[key])
+                self.shift = False
+
+        elif key not in keymap:
+            print("not in map", key)
             return
 
         elif value == 1 or value == 2:
+            if self.shift:
+                if key+"_SHIFT" in keymap:
+                    key = key + "_SHIFT"
+
             keyboard.press(keymap[key])
         elif value == 0:
             keyboard.release(keymap[key])
