@@ -1,3 +1,5 @@
+import argparse
+
 from pynput.mouse import Button, Controller as mC
 from pynput.keyboard import Key, Controller as kC
 import sys
@@ -5,6 +7,8 @@ import asyncio
 import ecodes
 from screeninfo import get_monitors
 import pyclip
+import ssl
+import os
 
 keymap = {
     "KEY_F1": Key.f1,
@@ -183,14 +187,21 @@ class Control:
             mouse.click(Button.left, count=2)
 
 
-async def start():
+async def start(host, port, disable_ssl=False):
     c = Control()
 
-    host, port = sys.argv[1], sys.argv[2]
     reader, writer = None, None
     while True:
         try:
-            reader, writer = await asyncio.open_connection(host, port)
+            ssl_ctx = None
+            if not disable_ssl:
+                ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+                ssl_ctx.load_cert_chain(f"{os.environ['HOME']}/certs/client.full.pem")
+                ssl_ctx.load_verify_locations(cafile=f"{os.environ['HOME']}/certs/ca.pem")
+                ssl_ctx.check_hostname = False
+                ssl_ctx.verify_mode = ssl.VerifyMode.CERT_REQUIRED
+
+            reader, writer = await asyncio.open_connection(host, port, ssl=ssl_ctx)
             print(f"connected to {host}:{port}")
             while True:
                 if reader.at_eof():
@@ -226,8 +237,29 @@ async def start():
         await asyncio.sleep(1)
 
 
+def get_args():
+    parser = argparse.ArgumentParser(description="wayrier client")
+    parser.add_argument(
+        '--no-ssl', action='store_true',
+        help='disable ssl (for testing, not recommended for real use)',
+    )
+    parser.add_argument(
+        '--host',
+        help='wayrier server to connect to'
+    )
+
+    return parser.parse_args()
+
+
 def main():
-    asyncio.run(start())
+    args = get_args()
+    parts = args.host.split(':')
+    host = parts[0]
+    port = '5842'
+    if len(parts) > 1:
+        port = parts[1]
+
+    asyncio.run(start(host, port, disable_ssl=args.no_ssl))
 
 
 if __name__ == '__main__':

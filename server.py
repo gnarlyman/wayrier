@@ -1,8 +1,12 @@
+import os
+
 import evdev
 import ecodes
 import asyncio
 import sys
 import pyclip
+import ssl
+import argparse
 
 
 class Grabbed:
@@ -88,24 +92,8 @@ class InputHandler:
         input_writer.cancel()
         clipboard_writer.cancel()
 
-    @staticmethod
-    async def clipboard_event(value):
-        while True:
-            if pyclip.paste() != value:
-                print(f"clipboard copied: {len(value)} bytes")
-                return
-            await asyncio.sleep(1)
 
-    async def clipboard_monitor(self):
-        value = pyclip.paste()
-        while True:
-            update = asyncio.create_task(self.clipboard_event(value))
-            await update
-            value = pyclip.paste()
-            await self.clipboard_queue.put(value)
-
-
-async def main():
+async def main(port, disable_ssl=False):
     devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
     found_devices = [dev for dev in devices if 'Logitech' in dev.name]
 
@@ -121,13 +109,33 @@ async def main():
         else:
             asyncio.create_task(inpt.read_device(d, 1))
 
-    # asyncio.create_task(inpt.clipboard_monitor())
+    ssl_ctx = None
+    if not disable_ssl:
+        ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ssl_ctx.load_cert_chain(f"{os.environ['HOME']}/certs/server.full.pem")
+        ssl_ctx.load_verify_locations(cafile=f"{os.environ['HOME']}/certs/ca.pem")
+        ssl_ctx.check_hostname = False
+        ssl_ctx.verify_mode = ssl.VerifyMode.CERT_REQUIRED
 
-    server = await asyncio.start_server(inpt.server_callback, '0.0.0.0', sys.argv[1])
+    server = await asyncio.start_server(inpt.server_callback, '0.0.0.0', port, ssl=ssl_ctx)
 
     async with server:
         await server.serve_forever()
 
 
+def get_args():
+    parser = argparse.ArgumentParser(description="wayrier server")
+    parser.add_argument(
+        '--no-ssl', action='store_true',
+        help='disable ssl (for testing, not recommended for real use)',
+    )
+    parser.add_argument(
+        '--port', help='port to listen on',
+    )
+
+    return parser.parse_args()
+
+
 if __name__ == '__main__':
-    asyncio.run(main())
+    args = get_args()
+    asyncio.run(main(args.port, disable_ssl=args.no_ssl))
