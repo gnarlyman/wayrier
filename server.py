@@ -3,11 +3,11 @@ import os
 import evdev
 import ecodes
 import asyncio
-import sys
 import pyclip
 import ssl
 import argparse
 
+from pprint import pprint
 
 class Grabbed:
     def __init__(self):
@@ -79,7 +79,18 @@ class InputHandler:
             writer.write(value)
 
     async def server_callback(self, reader, writer):
-        print("client connected")
+        addr, port = writer.get_extra_info('peername')
+        cert = writer.get_extra_info('peercert')
+        print(f"client connected {addr}:{port}")
+        if cert:
+            for k, v in cert.items():
+                if isinstance(v, tuple):
+                    for ext in v:
+                        if k == 'issuer' and ext[0][0] == 'commonName':
+                            print(f'trusted by {ext[0][1]}')
+                        elif k == 'subject' and ext[0][0] == 'commonName':
+                            print(f'commonName {ext[0][1]}')
+
         input_writer = asyncio.create_task(self.input_writer(reader, writer))
         clipboard_writer = asyncio.create_task(self.clipboard_writer(reader, writer))
 
