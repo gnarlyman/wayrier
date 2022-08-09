@@ -4,7 +4,11 @@ A basic tool for sharing wayland mouse and keyboard to other systems
 Server only works on linux with evdev.  
 Clients should work on X11 linux, Mac, and Windows with pynput. 
 
-Switches keyboard and mouse input to connected client. Server mouse/keyboard input is disabled while switched.
+Features:
+- asynchronous server/client for minimal cpu usage
+- all communication over one port
+- SSL encryption with client/server validation
+- Sends keyboard and mouse input to connected client. Server mouse/keyboard input is disabled while switched.
 
 Switching key:
 Scroll lock
@@ -14,16 +18,16 @@ Known limitations:
 - In wayland, periodically checking paste buffer for changes causes undesirable behavior 
 Workaround is to detect ctrl+c keypress and only capture clipboard then.
 - Can't be run as a service on server due to clipboard integration. On mac as well due to pynput.
+- Only designed to have a single connected client currently
 
 TODO:
-- Add encryption and client validation
 - client > server clipboard
-- better clipboard management
-- make switching-key configurable
+- investigate better way to detect paste-buffer updates
+- make switching-key configurable and/or add more ways to switch
+- support for multiple clients
 - optional/configurable visual indication of current controlled screen
 - better detection and handling of input devices on server
 
-WIP
 
 ## openssl commands
 
